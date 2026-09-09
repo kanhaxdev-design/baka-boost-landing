@@ -9,6 +9,7 @@ const IMG = {
   galleryGamer: "assets/gallery-gamer.jpg",
   galleryDesk: "assets/gallery-desk.jpg",
   heroGirl: "assets/hero-girl.png",
+  heroVideo: "assets/hero-girl-live.mp4",
   shopSony: "assets/shop/sony-wh1000xm5.jpg",
   shopInstax: "assets/shop/instax-mini-12.jpg",
   shopKeys: "assets/shop/mx-keys-mini.jpg",
@@ -396,21 +397,39 @@ function marketingNav(active) {
   </nav></div></div>
   <div class="drawer" id="drawer"><div class="bg" data-act="menu-close"></div><div class="panel"><button class="close" data-act="menu-close">${I.x}</button>${links.map(([r, l], i) => `<a href="#/${r}" style="animation-delay:${.1 + i * .06}s" data-act="menu-close">${l}</a>`).join("")}${inApp ? `<a href="#/messages" style="animation-delay:.38s" data-act="menu-close">${I.mail}<span>Messages</span>${unread ? `<span class="cnt">${unread}</span>` : ""}</a><a href="#/feed" style="animation-delay:.4s" data-act="menu-close">Home</a>` : `<a href="#/login" style="animation-delay:.4s" data-act="menu-close">Log in</a><a class="btn btn-primary" href="#/signup" style="animation-delay:.46s" data-act="menu-close">Join free</a>`}<button class="btn btn-ghost" data-act="theme" style="justify-content:center;margin-top:4px">${currentTheme() === "dark" ? I.sun : I.moon}<span>Switch theme</span></button></div></div>`;
 }
-function footer() {
-  return `<div class="wrap"><footer>
+function footer(extraClass) {
+  const inner = `<footer>
     <div class="col"><a class="brand" href="#/">${I.cat}<span>Baka<span class="bb">Boost</span></span></a><span>A safe, cute place for creators to grow their community.</span><div class="social">${I.send}${I.camera}${I.chat}</div></div>
     <div class="cols">
       <div class="col"><b>Product</b><a href="#/explore">Explore creators</a><a href="#/how">How it works</a><a href="#/pricing">Pricing</a><a href="#/how">For creators</a></div>
       <div class="col"><b>Trust</b><a href="#/safety">Safety &amp; privacy</a><a href="#/safety">Community rules</a><a href="#/safety">FAQ</a></div>
       <div class="col"><b>Account</b><a href="#/signup">Create a wishlist</a><a href="#/login">Log in</a><a href="#/dashboard">Creator dashboard</a></div>
     </div>
-  </footer></div>`;
+  </footer>`;
+  if (extraClass === "snap-foot") return `<section class="panel panel-foot">${inner}</section>`;
+  return `<div class="wrap">${inner}</div>`;
 }
 function marketingPage(active, body, opts = {}) {
-  return `<div class="page${opts.scene ? " pro-scene" : ""}${opts.homeHero ? " home-hero" : ""}">${opts.scene ? pro3dScene() : ""}${marketingNav(active)}${body}${footer()}</div>`;
+  const live = opts.scene ? livingWorld({ lite: true }) : "";
+  return `<div class="page${opts.scene ? " pro-scene" : ""}${opts.homeHero ? " home-hero" : ""}">${live}${marketingNav(active)}${body}${footer(opts.homeHero ? "snap-foot" : "")}</div>`;
 }
-function pro3dScene() {
-  return `<div class="pro-3d" aria-hidden="true"><img src="${IMG.heroGirl}" alt=""></div>`;
+function heroMedia(src = IMG.heroVideo, poster = IMG.heroGirl, cls = "bb-mascot-img") {
+  const attr = cls ? ` class="${cls}"` : "";
+  if (src && /\.mp4$/i.test(src)) {
+    return `<video${attr} src="${src}" poster="${poster}" autoplay muted loop playsinline aria-hidden="true"></video>`;
+  }
+  return `<img${attr} src="${src || poster}" alt="">`;
+}
+function livingWorld(opts = {}) {
+  const spark = Array.from({ length: opts.lite ? 6 : 10 }, (_, i) => {
+    const x = (i * 41 + 11) % 100, y = (i * 31 + 8) % 90, d = 16 + (i % 5) * 3;
+    return `<i class="bb-spark" style="left:${x}%;top:${y}%;--d:${d}s;animation-delay:${-(i * 1.2)}s"></i>`;
+  }).join("");
+  return `<div class="bb-world${opts.lite ? " lite" : ""}" aria-hidden="true" data-mood="hero">
+    <div class="bb-world-light"></div>
+    <div class="bb-mascot">${heroMedia()}</div>
+    <div class="bb-dust">${spark}</div>
+  </div>`;
 }
 function appShell(active, body) {
   const unread = signedIn() ? dmUnreadCount() : 0;
@@ -456,157 +475,126 @@ function bloomArt() {
   return `<svg class="bloom" viewBox="0 0 200 200" fill="none"><g transform="translate(100 100)">${[0,72,144,216,288].map((a) => `<path d="M0 0c-28-30-30-70 0-80 30 10 28 50 0 80z" fill="#ffb3d1" stroke="#ff8db7" stroke-width="1.5" transform="rotate(${a})"/>`).join("")}<circle r="12" fill="#ffe1ec"/><circle r="4" fill="#e0407d"/></g></svg>`;
 }
 function pageHome() {
-  const t = TESTI[testiTab];
-  const star = `<span class="stars">${I.star.repeat(5)}</span>`;
-  const feat = (ic, bg, col, title, txt) => `<div class="feat spot" style="--fc:${col}"><div class="ic" style="background:${bg};color:${col}">${ic}</div><b>${title}</b><p>${txt}</p></div>`;
   return marketingPage("", `
-  <section class="hero5">
-    <div class="hero-art" aria-hidden="true"><img src="${IMG.heroGirl}" alt=""></div>
+  <section class="panel hero5" data-world="hero">
+    <div class="hero-art" aria-hidden="true">${heroMedia(IMG.heroVideo, IMG.heroGirl, "")}</div>
+    <div class="hero-veil" aria-hidden="true"></div>
     <div class="wrap hero-copy">
       <span class="pill"><span class="dot"></span>Free for creators · 0% platform cut</span>
       <h1>${["Share", "your", "passion,"].map((w, i) => `<span class="w" style="animation-delay:${.1 + i * .08}s">${w}</span>`).join(" ")}<br><span class="em">${["earn", "their", "hearts."].map((w, i) => `<span class="w" style="animation-delay:${.34 + i * .08}s">${w}</span>`).join(" ")}</span></h1>
       <p class="lede">Shop, commissions, wishlist &amp; gifts — built for anime artists, VTubers &amp; illustrators. <b>Stay private. Keep every yen.</b></p>
-      <div class="hero-ctas"><a class="btn btn-primary btn-lg" href="#/explore">Explore creators</a><a class="btn btn-ghost btn-lg" href="#/creator/lunaaoki">Preview a page</a></div>
+      <form class="claim" id="claim-form">
+        <span class="claim-pre">bakaboost.app/</span>
+        <input id="claim-h" name="handle" maxlength="20" autocomplete="off" spellcheck="false" placeholder="yourname" aria-label="Claim a username">
+        <button class="btn btn-primary" type="submit" data-act="claim-handle">Claim</button>
+      </form>
+      <p class="claim-hint">free forever · not a subscription · live in minutes</p>
     </div>
   </section>
-  <div class="wrap">
-    <section class="hero-below">
-      <div class="split">
-        <div class="pane spot"><div class="txt"><span class="badge" style="align-self:flex-start">★ For creators</span><h2>Create your page</h2><p>Open a shop, wishlist &amp; commission slots. Fans boost you — you keep 100%.</p></div><a class="btn btn-primary" href="#/signup"><span>Start your page</span>${I.arrow}</a><div class="art"><img src="${IMG.hero}" alt=""></div></div>
-        <div class="pane spot"><div class="txt"><span class="badge violet" style="align-self:flex-start">♥ For supporters</span><h2>Support a creator</h2><p>Send an anonymous boost, gift a wish, or buy digital art — private &amp; secure.</p></div><a class="btn btn-violet" href="#/explore"><span>Explore creators</span>${I.arrow}</a><div class="art">${envelopeArt()}</div></div>
+
+  <section class="panel panel-paths" data-world="create" data-hue="pink">
+    <div class="wrap">
+      <div class="split path-split">
+        <article class="path-card spot"><span class="badge">For creators</span><h2>Create your page</h2><p>Open a shop, wishlist &amp; commission slots. Fans boost you — you keep 100%.</p><a class="btn btn-primary" href="#/signup"><span>Start your page</span>${I.arrow}</a></article>
+        <article class="path-card violet spot" data-world="support"><span class="badge violet">For supporters</span><h2>Support a creator</h2><p>Send an anonymous boost, gift a wish, or buy digital art — private &amp; secure.</p><a class="btn btn-violet" href="#/explore"><span>Explore creators</span>${I.arrow}</a></article>
       </div>
-      <div class="under"><div class="popular"><span>Popular creators</span><div class="avs">${creators.slice(0, 5).map((c) => `<a href="#/creator/${c.handle}" title="${esc(c.name)}"><img class="avatar" src="${c.avatar}" alt=""></a>`).join("")}</div></div><span class="beta"><span class="dot"></span>Open beta · first creators onboarding now</span></div>
       <div class="trust">
         <div>${I.lock}<div><b>Address stays private</b><span>You stay in control.</span></div></div>
         <div>${I.shield}<div><b>Secure checkout</b><span>Your data is protected.</span></div></div>
         <div>${I.mask}<div><b>Anonymous gifting</b><span>Gifts without a name attached.</span></div></div>
       </div>
-    </section>
-    <div class="platforms"><span class="eyebrow">Built for creators on every platform</span><div class="marquee"><div class="row track">${[1, 2].map(() => ["Twitch", "YouTube", "TikTok", "X", "Instagram", "Discord", "Kick", "Bluesky", "Patreon", "Threads", "Pixiv", "Booth"].map((p) => `<span>${p}</span>`).join("")).join("")}</div></div></div>
-  </div>
+      <div class="platforms"><span class="eyebrow">Built for creators on every platform</span><div class="marquee"><div class="row track">${[1, 2].map(() => ["Twitch", "YouTube", "TikTok", "X", "Instagram", "Discord", "Kick", "Bluesky", "Patreon", "Threads", "Pixiv", "Booth"].map((p) => `<span>${p}</span>`).join("")).join("")}</div></div></div>
+    </div>
+  </section>
 
-  <section class="section" data-hue="pink"><div class="wrap">
-    <div class="section-head center"><span class="eyebrow">Why BakaBoost</span><h2>Built for the scene, not a tip jar</h2><p>Wishlist sites stop at the Amazon link. Creators here sell, get commissioned, and keep all of it.</p></div>
-    <div class="why">
-      <div class="why-lead rv scale"><div><div class="zero">0%<small>platform cut</small></div></div><p>Gifts, shop sales and commission deposits are yours. Only card processing, shown before anyone pays.</p><div class="vs"><span><s>Wishlist sites: take a cut</s></span><span>BakaBoost: keep every yen</span></div></div>
-      <div class="why-grid">
-        ${[[I.bag, "var(--accent)", "Digital shop + commissions", "Stickers, wallpapers, prints, brush packs — fans buy, not just gift.", "Wishlist sites: physical items only"],
-           [I.lock, "var(--accent)", "Locked 18+ &amp; paid unlocks", "Exclusive drops, photosets, supporter packs — gated properly, in-grid.", "Wishlist sites: can't gate adult digital"],
-           [I.pen, "var(--violet)", "Commission slots with deposits", "Brief → slot → 50% deposit → delivery. Fans become clients.", "Wishlist sites: no commissions"],
-           [I.unlock, "var(--violet)", "Goals tied to unlocks", "Hit the goal and everyone who chipped in gets the drop. Community unlocks, not fake SKUs.", "Wishlist sites: crowdfund only"],
-           [I.bolt, "var(--accent)", "Instant digital delivery", "Purchases land in the supporter's library in seconds. No shipping anxiety.", "Wishlist sites: weeks in transit"],
-           [I.palette, "var(--violet)", "Creator Studio perks", "Custom domain, seasonal banners, collab seats — a home page, not a list.", "Wishlist sites: one template"],
-           [I.trophy, "#c9931a", "Supporter roles &amp; badges", "Monthly badges, Explore spotlight, top booster this week. Status beats a random haul.", "Wishlist sites: anonymous receipts"],
-           [I.megaphone, "var(--accent)", "Anonymous + named modes", "Fans choose: shoutout on stream, or a silent gift. Both first-class.", "Wishlist sites: anonymous by default"]].map(([ic, col, t, d, vs], i) => `<div class="why-card rv d${(i % 4) + 1}" style="--fc:${col}"><div class="ic">${ic}</div><b>${t}</b><p>${d}</p><span class="vsline">${vs} · <b>here: yes</b></span></div>`).join("")}
+  <section class="panel" data-hue="pink" data-world="create">
+    <div class="wrap">
+      <div class="section-head center"><span class="eyebrow">Why BakaBoost</span><h2>Built for the scene, not a tip jar</h2><p>Wishlist sites stop at the Amazon link. Creators here sell, get commissioned, and keep all of it.</p></div>
+      <div class="why why-compact">
+        <div class="why-lead rv"><div><div class="zero">0%<small>platform cut</small></div></div><p>Gifts, shop sales and commission deposits are yours. Only card processing, shown before anyone pays.</p></div>
+        <div class="why-grid">
+          ${[[I.bag, "var(--accent)", "Digital shop + commissions", "Stickers, wallpapers, prints, brush packs — fans buy, not just gift."],
+             [I.lock, "var(--accent)", "Locked 18+ &amp; paid unlocks", "Exclusive drops, photosets, supporter packs — gated properly."],
+             [I.pen, "var(--violet)", "Commission slots with deposits", "Brief → slot → 50% deposit → delivery. Fans become clients."],
+             [I.unlock, "var(--violet)", "Goals tied to unlocks", "Hit the goal and everyone who chipped in gets the drop."],
+             [I.bolt, "var(--accent)", "Instant digital delivery", "Purchases land in the supporter's library in seconds."],
+             [I.mask, "var(--accent)", "Anonymous + named modes", "Fans choose: shoutout on stream, or a silent gift."]].map(([ic, col, t, d], i) => `<div class="why-card rv d${(i % 4) + 1}" style="--fc:${col}"><div class="ic">${ic}</div><b>${t}</b><p>${d}</p></div>`).join("")}
+        </div>
       </div>
     </div>
-    <table class="compare-table rv"><thead><tr><th>What creators get</th><th>Wishlist-only sites</th><th>BakaBoost</th></tr></thead><tbody>
-      <tr><td>Cut taken from gifts</td><td class="cut">a percentage</td><td>0%</td></tr>
-      <tr><td>Digital shop &amp; instant delivery</td><td>—</td><td>✓</td></tr>
-      <tr><td>Commissions with deposits</td><td>—</td><td>✓</td></tr>
-      <tr><td>Gated 18+ digital goods</td><td>—</td><td>✓</td></tr>
-      <tr><td>Goals with community unlocks</td><td>crowdfund only</td><td>✓</td></tr>
-      <tr><td>Supporter badges &amp; spotlight</td><td>—</td><td>✓</td></tr>
-      <tr><td>Private relay address</td><td>✓</td><td>✓</td></tr>
-      <tr><td>Anonymous or named gifting</td><td>anonymous-leaning</td><td>fan's choice</td></tr>
-    </tbody></table>
-    <div class="cta-mid"><a class="btn btn-ghost" href="#/explore">See pages creators are building ${I.arrow.replace("<svg", '<svg style="width:16px;height:16px"')}</a></div>
-  </div></section>
+  </section>
 
-  <section class="section full band-lav" data-hue="lav"><div class="wrap">
-    <div class="section-head center"><span class="eyebrow" style="color:var(--violet);background:var(--violet-soft)">How it works</span><h2>From wish to <span class="grad">wonderful.</span></h2><p>Three soft steps. Live in minutes. Keep every yen.</p></div>
-    <div class="steps scrub-line"><svg class="steps-line" viewBox="0 0 1000 2" preserveAspectRatio="none"><line x1="0" y1="1" x2="1000" y2="1"></line><line class="draw" x1="0" y1="1" x2="1000" y2="1"></line></svg>
-      <div class="step spot"><span class="n">1</span><h3>Create</h3><p>Claim a handle, drop a banner &amp; avatar, list shop + wishlist items and open commission slots.</p></div>
-      <div class="step spot"><span class="n">2</span><h3>Share</h3><p>One link in every bio. Explore lists you for discovery, and badges bring regulars back.</p></div>
-      <div class="step spot"><span class="n">3</span><h3>Receive</h3><p>Gifts, shop sales &amp; commission deposits — 0% platform cut. Parcels come through your relay, never to your door directly.</p></div>
+  <section class="panel" data-hue="lav" data-world="create">
+    <div class="wrap">
+      <div class="section-head center"><span class="eyebrow" style="color:var(--violet);background:var(--violet-soft)">How it works</span><h2>From wish to <span class="grad">wonderful.</span></h2><p>Three soft steps. Live in minutes. Keep every yen.</p></div>
+      <div class="steps scrub-line"><svg class="steps-line" viewBox="0 0 1000 2" preserveAspectRatio="none"><line x1="0" y1="1" x2="1000" y2="1"></line><line class="draw" x1="0" y1="1" x2="1000" y2="1"></line></svg>
+        <div class="step spot"><span class="n">1</span><h3>Create</h3><p>Claim a handle, drop a banner &amp; avatar, list shop + wishlist items and open commission slots.</p></div>
+        <div class="step spot"><span class="n">2</span><h3>Share</h3><p>One link in every bio. Explore lists you for discovery, and badges bring regulars back.</p></div>
+        <div class="step spot"><span class="n">3</span><h3>Receive</h3><p>Gifts, shop sales &amp; commission deposits — 0% platform cut. Parcels come through your relay, never to your door directly.</p></div>
+      </div>
     </div>
-    <div class="cta-mid"><a class="btn btn-primary btn-lg" href="#/signup">Create your wishlist</a><small>It's free for creators ♡</small></div>
-  </div></section>
+  </section>
 
-  <section class="section" data-hue="mint"><div class="wrap datalist">
-    <div class="from-left"><span class="eyebrow" style="color:var(--violet)">Your data?</span><h2 style="margin:10px 0 14px">Always private, fully secure.</h2><p class="muted scrub" style="max-width:44ch">The whole product exists so a fan can send you something real without either of you giving up anything personal.</p><div style="margin-top:22px"><a class="btn btn-violet" href="#/safety">How we protect you</a></div></div>
-    <ul class="from-right">
-      <li>${I.lock}<span><b>Address protected.</b> Stores ship to your relay; we forward to you. Supporters see a timeline, never a street.</span></li>
-      <li>${I.shield}<span><b>Safe gifting.</b> Notes are screened. Decline anything, block anyone — and their gifts stop too.</span></li>
-      <li>${I.mask}<span><b>Nothing shared between parties.</b> Creators never see a supporter's card; supporters never see a creator's address.</span></li>
-      <li>${I.heart}<span><b>Real support.</b> Creators keep 100% of gifts and boosts. Supporters cover the small fee.</span></li>
-    </ul>
-  </div></section>
-
-  <section class="section full dark" data-hue="plum"><div class="aurora" data-px="-0.1"></div><div class="stars-bg">${Array.from({ length: 26 }, (_, i) => `<i style="left:${(i * 37) % 100}%;top:${(i * 53) % 100}%;animation-delay:${-(i % 7) * .45}s"></i>`).join("")}</div><div class="wrap">
-    <div class="section-head center"><span class="eyebrow" style="background:rgba(255,255,255,.08)">Features</span><h2>Why creators love BakaBoost</h2><p class="scrub">Everything a wishlist site does, plus a shop and commissions — with a kinder tip jar and a page that looks like you.</p></div>
-    <div class="features">
-      ${feat(I.bag, "var(--blush)", "var(--accent)", "Digital shop", "Wallpapers, stickers, brush packs, process videos — instant download, 0% cut.")}
-      ${feat(I.pen, "var(--violet-soft)", "var(--violet)", "Commissions", "Slots, briefs and 50% deposits. The rest on delivery.")}
-      ${feat(I.link, "var(--blush)", "var(--accent)", "Any store", "Paste a link from Amazon, Etsy, Wacom, wherever. We fetch the title and price.")}
-      ${feat(I.target, "var(--violet-soft)", "var(--violet)", "Goals &amp; contributions", "Expensive wish? Let the whole community chip in until it's funded.")}
-      ${feat(I.zap, "var(--violet-soft)", "var(--violet)", "Boosts", "A few dollars and a note, no shipping. The tip jar, but kinder.")}
-      ${feat(I.chat, "var(--blush)", "var(--accent)", "Gift &amp; thank-you messages", "Supporters write a note; you answer with a thank-you post they get notified about.")}
-      ${feat(I.mask, "var(--blush)", "var(--accent)", "Anonymous gifting", "Supporters choose signed or anonymous. You can require signed if you prefer.")}
-      ${feat(I.medal, "#fff3cf", "#e9b23a", "Badges", "Regulars earn badges that show next to their name in your inbox — and you earn yours.")}
-      ${feat(I.truck, "var(--blush)", "var(--accent)", "Relay shipping", "Everything ships to us first. You get parcels; nobody gets your address.")}
-    </div>
-  </div></section>
-
-  <section class="section" data-hue="peach"><div class="wrap">
-    <div class="section-head center"><h2>Add gifts from <span class="grad">any store</span></h2><p>All you need is a link. No partner program, no approved list — if it ships, it can be a wish.</p></div>
-    <div class="marquee rev" style="margin-top:22px"><div class="stores track" style="margin-top:0">${[1, 2].map(() => ["Amazon", "Etsy", "Wacom", "Uniqlo", "Sweetwater", "Gumroad", "Apple", "Hobonichi", "Copic", "Elgato", "Ippodo", "Mixam"].map((s) => `<span>${s}</span>`).join("")).join("")}</div></div>
-  </div></section>
-
-  <section class="section" data-hue="lav"><div class="wrap storefront">
-    <div class="from-left"><span class="eyebrow" style="color:var(--violet);background:var(--violet-soft)">Your storefront</span><h2 style="margin-top:10px">A page that feels like you</h2><p class="muted" style="margin-top:12px">Soft pastels, dreamy banners, and a shop that works like a real one — with commissions and a wishlist beside it.</p>
-      <ul>
-        <li><div class="ic">${I.bag}</div><span>Digital shop with locked 18+ cards in-grid</span></li>
-        <li><div class="ic">${I.pen}</div><span>Commission briefs, slots &amp; 50% deposits</span></li>
-        <li><div class="ic">${I.gift}</div><span>Gifts &amp; thanks with 0% platform cut</span></li>
-        <li><div class="ic">${I.target}</div><span>Goals with community unlocks — hit it, everyone who chipped in gets the drop</span></li>
+  <section class="panel" data-hue="mint" data-world="support">
+    <div class="wrap datalist">
+      <div class="from-left"><span class="eyebrow" style="color:var(--violet)">Your data?</span><h2 style="margin:10px 0 14px">Always private, fully secure.</h2><p class="muted" style="max-width:44ch">The whole product exists so a fan can send you something real without either of you giving up anything personal.</p><div style="margin-top:22px"><a class="btn btn-violet" href="#/safety">How we protect you</a></div></div>
+      <ul class="from-right">
+        <li>${I.lock}<span><b>Address protected.</b> Stores ship to your relay; we forward to you. Supporters see a timeline, never a street.</span></li>
+        <li>${I.shield}<span><b>Safe gifting.</b> Notes are screened. Decline anything, block anyone — and their gifts stop too.</span></li>
+        <li>${I.mask}<span><b>Nothing shared between parties.</b> Creators never see a supporter's card; supporters never see a creator's address.</span></li>
+        <li>${I.heart}<span><b>Real support.</b> Creators keep 100% of gifts and boosts. Supporters cover the small fee.</span></li>
       </ul>
-      <a class="btn btn-violet" href="#/creator/lunaaoki/shop">Preview Luna's page</a></div>
-    <div class="mini mask from-right" data-px="-0.05">
-      <div class="mb" style="${thumbStyle(0)}"><img src="${IMG.hero}" alt=""></div>
-      <div class="mid"><img class="avatar" src="${IMG.av1}" alt=""><div><b>Luna Aoki</b><small>@lunaaoki</small></div><span class="btn btn-ghost btn-sm" style="margin-left:auto">Follow</span></div>
-      <div class="mtabs"><span>Home</span><span class="on">Shop</span><span>Wishlist</span><span>Goals</span><span>Thanks</span></div>
-      <div class="goal"><b>New art setup</b><div class="progress"><i style="width:82%"></i></div><span class="muted">82% · unlocks Night Drop</span></div>
-      <div class="shopgrid">${creators[0].shop.slice(0, 3).map((s) => `<div><div class="th" style="${thumbStyle(0)}">${I[s.icon] || I.image}</div><b>${esc(s.title)}</b><span>${money(s.price)}</span></div>`).join("")}<div><div class="th" style="${thumbStyle(0)}">${I.image}</div><b>After Dark Set</b><span>$12</span><div class="lock">${I.lock}18+ · locked</div></div><div><div class="th" style="${thumbStyle(0)}">${I.brush}</div><b>Brush Pack: Soft Inks</b><span>$6</span></div><div><div class="th" style="${thumbStyle(0)}">${I.camera}</div><b>Process Video</b><span>$5</span></div></div>
     </div>
-  </div></section>
+  </section>
 
-  <section class="section" data-hue="peach"><div class="wrap">
-    <div class="values">
-      <div class="value rv"><span class="big">0%</span><b>platform cut</b><p>Gifts, shop sales and commission deposits stay yours. Only card processing fees.</p></div>
-      <div class="value rv d1"><span class="big">Free</span><b>forever</b><p>Core tools free for every creator. No trial cliff, no surprise paywall.</p></div>
-      <div class="value rv d2"><span class="big">✿</span><b>Anime-first</b><p>Soft pastels, locked 18+ cards, commissions &amp; wishlist tabs — built for this scene.</p></div>
+  <section class="panel" data-hue="lav" data-world="shop">
+    <div class="wrap storefront">
+      <div class="from-left"><span class="eyebrow" style="color:var(--violet);background:var(--violet-soft)">Your storefront</span><h2 style="margin-top:10px">A page that feels like you</h2><p class="muted" style="margin-top:12px">Soft pastels, dreamy banners, and a shop that works like a real one — with commissions and a wishlist beside it.</p>
+        <ul>
+          <li><div class="ic">${I.bag}</div><span>Digital shop with locked 18+ cards in-grid</span></li>
+          <li><div class="ic">${I.pen}</div><span>Commission briefs, slots &amp; 50% deposits</span></li>
+          <li><div class="ic">${I.gift}</div><span>Gifts &amp; thanks with 0% platform cut</span></li>
+          <li><div class="ic">${I.target}</div><span>Goals with community unlocks — hit it, everyone who chipped in gets the drop</span></li>
+        </ul>
+        <a class="btn btn-violet" href="#/creator/lunaaoki/shop">Preview Luna's page</a></div>
+      <div class="mini mask from-right">
+        <div class="mb" style="${thumbStyle(0)}"><img src="${IMG.hero}" alt=""></div>
+        <div class="mid"><img class="avatar" src="${IMG.av1}" alt=""><div><b>Luna Aoki</b><small>@lunaaoki</small></div><span class="btn btn-ghost btn-sm" style="margin-left:auto">Follow</span></div>
+        <div class="mtabs"><span>Home</span><span class="on">Shop</span><span>Wishlist</span><span>Goals</span><span>Thanks</span></div>
+        <div class="goal"><b>New art setup</b><div class="progress"><i style="width:82%"></i></div><span class="muted">82% · unlocks Night Drop</span></div>
+        <div class="shopgrid">${creators[0].shop.slice(0, 3).map((s) => `<div><div class="th" style="${thumbStyle(0)}">${I[s.icon] || I.image}</div><b>${esc(s.title)}</b><span>${money(s.price)}</span></div>`).join("")}<div><div class="th" style="${thumbStyle(0)}">${I.image}</div><b>After Dark Set</b><span>$12</span><div class="lock">${I.lock}18+ · locked</div></div><div><div class="th" style="${thumbStyle(0)}">${I.brush}</div><b>Brush Pack: Soft Inks</b><span>$6</span></div><div><div class="th" style="${thumbStyle(0)}">${I.camera}</div><b>Process Video</b><span>$5</span></div></div>
+      </div>
     </div>
-  </div></section>
+  </section>
 
-  <section class="section full band-pink" data-hue="pink"><div class="wrap testimonial">
-    <span class="eyebrow" style="color:var(--violet)">Loved by creators</span>
-    <img class="avatar" src="${t.av}" alt="">
-    <p class="q">${esc(t.q)}</p>
-    <div class="who"><b>— ${esc(t.who)}</b><small>${esc(t.role)}</small></div>
-    <div class="ttabs">${Object.keys(TESTI).map((k) => `<button class="${k === testiTab ? "on" : ""}" data-testi="${k}">${k}</button>`).join("")}</div>
-  </div></section>
-
-  <section class="section" data-hue="lav"><div class="wrap"><div class="studio">
-    <div class="from-left"><span class="eyebrow" style="color:var(--violet);background:color-mix(in srgb,var(--surface) 70%,transparent)">Studio</span><h2 style="margin-top:10px">Level up for <span class="price">$12</span><span class="muted" style="font-size:16px">/mo</span></h2><p class="muted" style="margin-top:10px;max-width:44ch">Custom domain, seasonal banners, and collab seats — for creators ready to look like a studio. The free tier never loses features.</p>
-      <ul><li>${I.check}<span>Custom domain (you.studio)</span></li><li>${I.check}<span>Seasonal banner themes</span></li><li>${I.check}<span>Collab seats for shared shops</span></li><li>${I.check}<span>Priority relay forwarding</span></li></ul>
-      <div style="display:flex;gap:12px;margin-top:22px;flex-wrap:wrap"><a class="btn btn-violet" href="#/pricing">See Free vs Studio</a><a class="btn btn-ghost" href="#/signup">Start free</a></div></div>
-    <div class="compare from-right"><div class="row"><b></b><span style="display:flex;gap:28px"><b>Free</b><b style="color:var(--violet)">Studio</b></span></div>${[["Shop, wishlist, goals, boosts", "y", "y"], ["0% cut on gifts & shop", "y", "y"], ["Commissions with deposits", "y", "y"], ["Relay address", "y", "y"], ["Custom domain", "n", "y"], ["Seasonal banner themes", "n", "y"], ["Collab seats", "n", "y"]].map(([l, a, b]) => `<div class="row"><span>${l}</span><span style="display:flex;gap:44px"><span class="${a}">${a === "y" ? "✓" : "—"}</span><span class="${b}">${b === "y" ? "✓" : "—"}</span></span></div>`).join("")}</div>
-  </div></div></section>
-
-  <section class="section" data-hue="white"><div class="wrap">
-    <div class="section-head center" style="margin-bottom:28px"><span class="eyebrow" style="color:var(--violet);background:var(--violet-soft)">FAQ</span></div>
-    <div class="faq2">
-      <details><summary>Is BakaBoost really free for creators?</summary><div class="a">Yes. Shop, wishlist, goals, boosts, commissions and the relay address are free forever. Studio is an optional $12/mo for custom domains, seasonal themes and collab seats.</div></details>
-      <details><summary>How is this different from a wishlist site?</summary><div class="a">A wishlist is one tab. You also get a digital shop, commission slots with deposits, pooled goals, and boosts — all on one page, all private.</div></details>
-      <details><summary>Do you take a cut of commissions or gifts?</summary><div class="a">No. 0% platform cut on gifts, shop sales and commission deposits. Only card processing (2.9% + 30¢) is deducted, and it's shown before anyone pays.</div></details>
-      <details><summary>Can I sell 18+ digital goods?</summary><div class="a">Yes, within our content rules. Adult items show as locked cards in your grid and only unlock for signed-in adults who opt in.</div></details>
-      <details><summary>Is my address private?</summary><div class="a">Always. Stores ship to your BakaBoost relay and we forward to you. Supporters see a timeline, never a street — not even a city.</div></details>
+  <section class="panel" data-hue="peach" data-world="support">
+    <div class="wrap">
+      <div class="values">
+        <div class="value rv"><span class="big">0%</span><b>platform cut</b><p>Gifts, shop sales and commission deposits stay yours. Only card processing fees.</p></div>
+        <div class="value rv d1"><span class="big">Free</span><b>forever</b><p>Core tools free for every creator. No trial cliff, no surprise paywall.</p></div>
+        <div class="value rv d2"><span class="big">✿</span><b>Anime-first</b><p>Soft pastels, locked 18+ cards, commissions &amp; wishlist tabs — built for this scene.</p></div>
+      </div>
+      <div class="studio" style="margin-top:22px">
+        <div class="from-left"><span class="eyebrow" style="color:var(--violet);background:color-mix(in srgb,var(--surface) 70%,transparent)">Studio</span><h2 style="margin-top:10px">Level up for <span class="price">$12</span><span class="muted" style="font-size:16px">/mo</span></h2><p class="muted" style="margin-top:10px;max-width:44ch">Custom domain, seasonal banners, and collab seats — for creators ready to look like a studio. The free tier never loses features.</p>
+          <div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap"><a class="btn btn-violet" href="#/pricing">See Free vs Studio</a><a class="btn btn-ghost" href="#/signup">Start free</a></div></div>
+        <div class="compare from-right"><div class="row"><b></b><span style="display:flex;gap:28px"><b>Free</b><b style="color:var(--violet)">Studio</b></span></div>${[["Shop, wishlist, goals, boosts", "y", "y"], ["0% cut on gifts & shop", "y", "y"], ["Commissions with deposits", "y", "y"], ["Custom domain", "n", "y"], ["Seasonal banner themes", "n", "y"]].map(([l, a, b]) => `<div class="row"><span>${l}</span><span style="display:flex;gap:44px"><span class="${a}">${a === "y" ? "✓" : "—"}</span><span class="${b}">${b === "y" ? "✓" : "—"}</span></span></div>`).join("")}</div>
+      </div>
     </div>
-    <div style="text-align:center;margin-top:16px"><a href="#/safety" style="font-weight:600">More on safety &amp; privacy</a></div>
-  </div></section>
+  </section>
 
-  <section class="section"><div class="wrap"><div class="plum"><div><h2>Your community is ready to cheer you on.</h2><p style="color:#cbbfd8;margin-top:10px;max-width:40ch">Anime creators keep 100% of gifts, shop sales and commissions here. Open beta — claim your handle early.</p><div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:18px"><a class="btn btn-primary" href="#/signup">Create your free page</a><a class="btn btn-ghost" style="background:transparent;color:var(--plum-ink);border-color:rgba(255,255,255,.25)" href="#/explore">Browse Explore</a></div></div><div class="glow"></div><div data-px="0.08" style="position:absolute;right:0;top:0;bottom:0;width:300px">${bloomArt()}</div></div></div></section>
+  <section class="panel panel-end" data-hue="white" data-world="support">
+    <div class="wrap">
+      <div class="section-head center" style="margin-bottom:20px"><span class="eyebrow" style="color:var(--violet);background:var(--violet-soft)">FAQ</span></div>
+      <div class="faq2">
+        <details><summary>Is BakaBoost really free for creators?</summary><div class="a">Yes. Shop, wishlist, goals, boosts, commissions and the relay address are free forever. Studio is an optional $12/mo for custom domains, seasonal themes and collab seats.</div></details>
+        <details><summary>How is this different from a wishlist site?</summary><div class="a">A wishlist is one tab. You also get a digital shop, commission slots with deposits, pooled goals, and boosts — all on one page, all private.</div></details>
+        <details><summary>Do you take a cut of commissions or gifts?</summary><div class="a">No. 0% platform cut on gifts, shop sales and commission deposits. Only card processing (2.9% + 30¢) is deducted, and it's shown before anyone pays.</div></details>
+        <details><summary>Can I sell 18+ digital goods?</summary><div class="a">Yes, within our content rules. Adult items show as locked cards in your grid and only unlock for signed-in adults who opt in.</div></details>
+        <details><summary>Is my address private?</summary><div class="a">Always. Stores ship to your BakaBoost relay and we forward to you. Supporters see a timeline, never a street — not even a city.</div></details>
+      </div>
+      <div class="plum" style="margin-top:22px"><div><h2>Your community is ready to cheer you on.</h2><p style="color:#cbbfd8;margin-top:10px;max-width:40ch">Anime creators keep 100% of gifts, shop sales and commissions here. Open beta — claim your handle early.</p><div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:18px"><a class="btn btn-primary" href="#/signup">Create your free page</a><a class="btn btn-ghost" style="background:transparent;color:var(--plum-ink);border-color:rgba(255,255,255,.25)" href="#/explore">Browse Explore</a></div></div></div>
+    </div>
+  </section>
   `, { homeHero: true });
 }
 
@@ -906,30 +894,49 @@ function pageCreator(handle, tab) {
 /* ---------- Page editor ---------- */
 function pagePageEditor() {
   const c = myCreator();
-  const sw = (key, cls) => `<div class="swatches">${Object.keys(ACCENTS).map((k2) => `<button class="swatch dot ${(c.theme.accent === k2) ? "on" : ""}" style="--sw:${ACCENTS[k2].a};background:${ACCENTS[k2].soft}" data-accent="${k2}" title="${k2}"></button>`).join("")}</div>`;
-  return appShell("dashboard/page", `<div class="main-head"><div><span class="eyebrow">My page</span><h2>Make it feel like you</h2></div><a class="btn btn-ghost" href="#/creator/${c.handle}">${I.eye}<span>View live page</span></a></div>
+  const sw = () => `<div class="swatches">${Object.keys(ACCENTS).map((k2) => `<button class="swatch dot ${(c.theme.accent === k2) ? "on" : ""}" style="--sw:${ACCENTS[k2].a};background:${ACCENTS[k2].soft}" data-accent="${k2}" title="${k2}"></button>`).join("")}</div>`;
+  return appShell("dashboard/page", `<div class="ed-page">
+  <div class="main-head"><div><span class="eyebrow">My page</span><h2>Make it feel like you</h2></div><a class="btn btn-ghost" href="#/creator/${c.handle}">${I.eye}<span>View live page</span></a></div>
   <div class="editor">
-    <div style="display:flex;flex-direction:column;gap:16px">
-      <div class="card"><h3>Identity</h3>
+    <div class="ed-form">
+      <section class="ed-card">
+        <div class="ed-h"><span class="eyebrow">You</span><h3>Identity</h3></div>
         <div class="field"><label>Display name</label><input id="pe-name" value="${esc(c.name)}"></div>
         <div class="field"><label>Tagline</label><input id="pe-tagline" value="${esc(c.tagline || "")}" placeholder="Illustrator & Streamer"></div>
         <div class="field"><label>Bio</label><textarea id="pe-bio" rows="3">${esc(c.bio)}</textarea></div>
-        <div class="field"><label>Location</label><input id="pe-loc" value="${esc(c.location)}"></div></div>
-      <div class="card"><h3>Look</h3>
+        <div class="field"><label>Location</label><input id="pe-loc" value="${esc(c.location)}"></div>
+      </section>
+      <section class="ed-card">
+        <div class="ed-h"><span class="eyebrow">Theme</span><h3>Look</h3></div>
         <div class="field"><label>Banner</label><div class="swatches">${TINTS.map((t, i) => `<button class="swatch ${c.tint === i ? "on" : ""}" style="background:${t}" data-tint="${i}" title="Banner ${i + 1}"></button>`).join("")}</div></div>
-        <div class="field"><label>Accent color</label>${sw()}<span class="hint">Used for your buttons, tabs, and progress bars.</span></div></div>
-      <div class="card"><h3>Links</h3>${(c.links || []).map((l, i) => `<div class="field"><input data-link="${i}" value="${esc(l)}"></div>`).join("")}<button class="btn btn-ghost btn-sm" style="align-self:flex-start" data-act="add-link">${I.plus}<span>Add link</span></button></div>
-      <div class="card"><h3>Goal</h3>
+        <div class="field"><label>Accent color</label>${sw()}<span class="hint">Used for your buttons, tabs, and progress bars.</span></div>
+      </section>
+      <section class="ed-card">
+        <div class="ed-h"><span class="eyebrow">Social</span><h3>Links</h3></div>
+        ${(c.links || []).map((l, i) => `<div class="field"><input data-link="${i}" value="${esc(l)}"></div>`).join("")}
+        <button class="btn btn-ghost btn-sm" style="align-self:flex-start" data-act="add-link">${I.plus}<span>Add link</span></button>
+      </section>
+      <section class="ed-card">
+        <div class="ed-h"><span class="eyebrow">Community</span><h3>Goal</h3></div>
         <div class="field"><label>Title</label><input id="pe-goal" value="${esc(c.goal ? c.goal.title : "")}" placeholder="New art setup"></div>
         <div class="row2"><div class="field"><label>Target (USD)</label><input id="pe-target" type="number" value="${c.goal ? c.goal.target : ""}"></div><div class="field"><label>Raised so far</label><input value="${c.goal ? money(c.goal.raised) : "$0"}" disabled></div></div>
-        <div class="field"><label>What it's for</label><input id="pe-goaldesc" value="${esc(c.goal ? c.goal.desc : "")}"></div></div>
-      <button class="btn btn-primary btn-lg" data-act="save-page">Save page</button>
+        <div class="field"><label>What it's for</label><input id="pe-goaldesc" value="${esc(c.goal ? c.goal.desc : "")}"></div>
+      </section>
+      <button class="btn btn-primary btn-lg ed-save" data-act="save-page">Save page</button>
     </div>
-    <div class="preview-frame"><div class="lbl"><span>Live preview</span><span>bakaboost.app/${c.handle}</span></div>
-      <div style="zoom:.78;pointer-events:none">${creatorHeader(c, { preview: true })}<div class="tabs" style="${themeVars(c)}"><span class="on" style="padding:10px 0;border-bottom:2px solid var(--accent);margin-bottom:-1px;color:var(--accent)">Home</span><span style="padding:10px 0">Wishlist</span><span style="padding:10px 0">About</span><span style="padding:10px 0">Goals</span><span style="padding:10px 0">Thanks</span></div>
-      <div class="wish-grid" style="${themeVars(c)}">${c.wishlist.filter((w) => !w.done).slice(0, 3).map((w) => wishCard(c, w)).join("")}</div></div>
-    </div>
-  </div>`);
+    <aside class="preview-frame ed-preview">
+      <div class="ed-phone">
+        <div class="ed-phone-bar"><i></i></div>
+        <div class="ed-phone-lbl"><b>Live preview</b><small>bakaboost.app/${c.handle}</small></div>
+        <div class="ed-phone-body" style="${themeVars(c)}">
+          ${creatorHeader(c, { preview: true })}
+          <div class="tabs"><span class="on">Home</span><span>Wishlist</span><span>About</span><span>Goals</span><span>Thanks</span></div>
+          <div class="wish-grid">${c.wishlist.filter((w) => !w.done).slice(0, 2).map((w) => wishCard(c, w)).join("")}</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>`);
 }
 function readEditor() {
   const c = myCreator();
@@ -1097,7 +1104,7 @@ function pageThanks(handle) {
 }
 
 /* ---------- Auth & onboarding ---------- */
-const ob = { role: "supporter", interests: new Set(["Art", "Cosplay"]), step: 1 };
+const ob = { role: "supporter", interests: new Set(["Art", "Cosplay"]), step: 1, handle: "" };
 function pageLogin() {
   return `<div class="page"><div class="auth"><a class="brand" href="#/">${I.cat}<span>Baka<span class="bb">Boost</span></span></a>
     <div class="card"><h3 style="font-family:var(--sans);font-weight:700;font-size:30px">Welcome back</h3>
@@ -1113,7 +1120,7 @@ function pageSignup() {
   let body;
   if (ob.step === 1) body = `<div class="card"><h3 style="font-family:var(--sans);font-weight:700;font-size:30px">Create your account</h3>
       <div class="field"><label>Email</label><input type="email" placeholder="you@example.com"></div>
-      <div class="field"><label>Handle</label><input placeholder="@yourhandle"><span class="hint">This becomes your page: bakaboost.app/yourhandle</span></div>
+      <div class="field"><label>Handle</label><input id="ob-handle" placeholder="@yourhandle" value="${esc(ob.handle ? "@" + ob.handle : "")}"><span class="hint">This becomes your page: bakaboost.app/${esc(ob.handle || "yourhandle")}</span></div>
       <div class="field"><label>Password</label><input type="password" placeholder="At least 8 characters"></div>
       <button class="btn btn-primary btn-block" data-act="ob-next">Continue</button>
       <p class="muted" style="text-align:center;font-size:14px">Already have one? <a href="#/login">Log in</a></p></div>`;
@@ -1288,7 +1295,7 @@ function enhance() {
   root.querySelectorAll(".pro-page .tabs").forEach(bindTabSeek);
   // mark reveal targets
   root.querySelectorAll(".section .section-head, .section .steps > *, .section .features > *, .section .datalist > *, .section .pagefeel > *, .section .stores > *, .section .faq2 > *, .section .plum, .section .testimonial > *, .section .cta-mid, .platforms > *, .wish-grid > .wish, .tiles > .tile, .badge-grid > *, .list > *").forEach((el, i) => { if (!el.classList.contains("rv")) { el.classList.add("rv"); const sib = [...el.parentElement.children].indexOf(el); el.classList.add("d" + Math.min(sib, 7)); } });
-  if (reduceMotion) { root.querySelectorAll(".progress").forEach((p) => p.classList.remove("pending")); return; }
+  if (reduceMotion) { root.querySelectorAll(".progress").forEach((p) => p.classList.remove("pending")); World.bind(root.querySelector(".bb-world")); root.querySelectorAll("video.bb-mascot-img, .hero-art video").forEach((v) => v.pause()); return; }
   // scroll reveal
   revealObs = revealObs || new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); revealObs.unobserve(e.target); } }), { threshold: 0.12, rootMargin: "0px 0px -6% 0px" });
   root.querySelectorAll(".rv:not(.in)").forEach((el) => { const r = el.getBoundingClientRect(); if (r.top < innerHeight * 0.9) el.classList.add("in"); else revealObs.observe(el); });
@@ -1314,11 +1321,19 @@ function enhance() {
   // body hue shifts by section in view
   const hues = { pink: "var(--bg-pink)", lav: "var(--bg-lav)", mint: "var(--bg-mint)", peach: "var(--bg-peach)", plum: "var(--bg-lav)", white: "var(--bg-white)" };
   const hueSecs = root.querySelectorAll("[data-hue]");
-  if (hueSecs.length) { const hueObs = new IntersectionObserver((es) => { es.forEach((e) => { if (e.isIntersecting) document.body.style.backgroundColor = hues[e.target.dataset.hue] ? getComputedStyle(document.documentElement).getPropertyValue(hues[e.target.dataset.hue].slice(4, -1)).trim() : ""; }); }, { rootMargin: "-45% 0px -45% 0px" }); hueSecs.forEach((s) => hueObs.observe(s)); } else document.body.style.backgroundColor = "";
+  if (root.querySelector(".home-hero")) document.body.style.backgroundColor = currentTheme() === "dark" ? "#050606" : "#FCF9FC";
+  else if (hueSecs.length) { const hueObs = new IntersectionObserver((es) => { es.forEach((e) => { if (e.isIntersecting) document.body.style.backgroundColor = hues[e.target.dataset.hue] ? getComputedStyle(document.documentElement).getPropertyValue(hues[e.target.dataset.hue].slice(4, -1)).trim() : ""; }); }, { rootMargin: "-45% 0px -45% 0px" }); hueSecs.forEach((s) => hueObs.observe(s)); } else document.body.style.backgroundColor = "";
   // cursor spotlight on cards
   root.querySelectorAll(".spot").forEach((el) => el.addEventListener("mousemove", (e) => { const r = el.getBoundingClientRect(); el.style.setProperty("--sx", ((e.clientX - r.left) / r.width * 100) + "%"); el.style.setProperty("--sy", ((e.clientY - r.top) / r.height * 100) + "%"); }, { passive: true }));
   // plum glow follows cursor
   root.querySelectorAll(".plum").forEach((p) => p.addEventListener("mousemove", (e) => { const r = p.getBoundingClientRect(); p.style.setProperty("--mx", ((e.clientX - r.left) / r.width * 100) + "%"); p.style.setProperty("--my", ((e.clientY - r.top) / r.height * 100) + "%"); }, { passive: true }));
+  World.bind(root.querySelector(".bb-world"));
+  root.querySelectorAll("video.bb-mascot-img, .hero-art video").forEach((v) => {
+    if (reduceMotion) { v.pause(); v.removeAttribute("autoplay"); return; }
+    v.muted = true;
+    const play = () => v.play().catch(() => {});
+    if (v.readyState >= 2) play(); else v.addEventListener("canplay", play, { once: true });
+  });
 }
 
 /* ---- Motion layer 2 helpers ---- */
@@ -1368,6 +1383,78 @@ document.addEventListener("click", (e) => {
 
 function enhanceLive(n) { const b = n.closest(".fc.boost"); if (b) { b.style.animation = "none"; void b.offsetWidth; b.style.animation = ""; } }
 
+const World = {
+  el: null, raf: 0, blink: 0, mx: 0, my: 0, lx: 0, ly: 0, onMove: null, moodObs: null,
+  bind(el) {
+    this.off();
+    if (!el) return;
+    this.el = el;
+    this.lx = this.ly = this.mx = this.my = 0;
+    if (!reduceMotion && matchMedia("(pointer: fine)").matches) {
+      this.onMove = (e) => { this.mx = (e.clientX / innerWidth - 0.5) * 2; this.my = (e.clientY / innerHeight - 0.5) * 2; };
+      addEventListener("pointermove", this.onMove, { passive: true });
+    }
+    const loop = () => {
+      if (!this.el) return;
+      this.lx += (this.mx - this.lx) * 0.055;
+      this.ly += (this.my - this.ly) * 0.055;
+      this.el.style.setProperty("--mx", this.lx.toFixed(3));
+      this.el.style.setProperty("--my", this.ly.toFixed(3));
+      this.raf = requestAnimationFrame(loop);
+    };
+    if (!reduceMotion) this.raf = requestAnimationFrame(loop);
+    this.scheduleBlink();
+    const marks = [...document.querySelectorAll("[data-world]")];
+    if (marks.length) {
+      this.moodObs = new IntersectionObserver(() => this.pickMood(), { threshold: [0, 0.2, 0.45, 0.7], rootMargin: "-12% 0px -28% 0px" });
+      marks.forEach((m) => this.moodObs.observe(m));
+      this.pickMood();
+    }
+  },
+  scheduleBlink() {
+    clearTimeout(this.blink);
+    if (!this.el || reduceMotion) return;
+    this.blink = setTimeout(() => {
+      if (!this.el) return;
+      const twice = Math.random() < 0.28;
+      this.el.classList.add("blink");
+      setTimeout(() => { if (this.el) this.el.classList.remove("blink"); }, 150);
+      if (twice) setTimeout(() => {
+        if (!this.el) return;
+        this.el.classList.add("blink");
+        setTimeout(() => { if (this.el) this.el.classList.remove("blink"); }, 140);
+      }, 220);
+      this.scheduleBlink();
+    }, 3400 + Math.random() * 5200);
+  },
+  scroll(y, vh) {
+    if (!this.el) return;
+    this.el.style.setProperty("--py", (y * 0.04).toFixed(1) + "px");
+    this.el.style.setProperty("--sy", Math.min(1, y / (vh || 1)).toFixed(3));
+    this.pickMood();
+  },
+  pickMood() {
+    if (!this.el) return;
+    const marks = document.querySelectorAll("[data-world]");
+    if (!marks.length) return;
+    let mood = this.el.dataset.mood || "hero", best = 1e9;
+    marks.forEach((m) => {
+      const r = m.getBoundingClientRect(), mid = r.top + r.height * 0.35, d = Math.abs(mid - innerHeight * 0.38);
+      if (r.bottom > 80 && r.top < innerHeight - 60 && d < best) { best = d; mood = m.dataset.world; }
+    });
+    this.el.dataset.mood = mood;
+  },
+  off() {
+    if (this.onMove) removeEventListener("pointermove", this.onMove);
+    this.onMove = null;
+    cancelAnimationFrame(this.raf); this.raf = 0;
+    clearTimeout(this.blink); this.blink = 0;
+    if (this.moodObs) this.moodObs.disconnect();
+    this.moodObs = null;
+    this.el = null;
+  }
+};
+
 /* ---------- Scroll engine ---------- */
 const SE = { els: [], scrubs: [], steps: null, lastY: 0, vel: 0, ticking: false, dots: null, secs: [] };
 function scrollSetup(root) {
@@ -1393,7 +1480,7 @@ function scrollTick(force) {
     SE.ticking = false; const y = scrollY, vh = innerHeight; SE.vel = y - SE.lastY;
     const marketing = !!$(".navbar");
     // nav hide/show
-    const nav = $(".navbar"); if (nav) { if (y > 240 && SE.vel > 4) nav.classList.add("hide"); else if (SE.vel < -2 || y < 240) nav.classList.remove("hide"); }
+    const nav = $(".navbar"); if (nav) { if (document.querySelector(".pro-page")) nav.classList.remove("hide"); else if (y > 240 && SE.vel > 4) nav.classList.add("hide"); else if (SE.vel < -2 || y < 240) nav.classList.remove("hide"); }
     if (reduceMotion) { SE.lastY = y; return; }
     // parallax
     SE.els.forEach(({ el, f }) => { const r = el.getBoundingClientRect(); const c = r.top + r.height / 2 - vh / 2; if (Math.abs(c) < vh * 1.5) el.style.transform = `translate3d(0, ${(-c * f).toFixed(1)}px, 0)${el.classList.contains("orb") && innerWidth > 760 ? " translateX(-50%)" : ""}`; });
@@ -1409,6 +1496,7 @@ function scrollTick(force) {
     if (SE.dots) { SE.dots.classList.toggle("show", marketing && y > 300); let on = 0; SE.secs.forEach((s, i) => { if (s.getBoundingClientRect().top < vh * 0.5) on = i; }); [...SE.dots.children].forEach((d, i) => d.classList.toggle("on", i === on)); }
     // back to top ring
     const tt = $(".totop"); if (tt) { const h = document.documentElement; const p = h.scrollTop / (h.scrollHeight - h.clientHeight || 1); tt.classList.toggle("show", y > 600 && marketing); tt.style.setProperty("--p", (p * 100).toFixed(1) + "%"); }
+    World.scroll(y, vh);
     SE.lastY = y;
   });
 }
@@ -1424,6 +1512,7 @@ function route() {
   const hash = location.hash.replace(/^#\/?/, "");
   const sameView = hash === lastHash, keepY = sameView ? scrollY : 0; lastHash = hash; const [p0, p1, p2] = hash.split("/");
   let html;
+  World.off();
   switch (p0 || "") {
     case "": html = pageHome(); break;
     case "how": html = pageHow(); break;
@@ -1560,7 +1649,14 @@ document.addEventListener("click", (e) => {
     if (location.hash.replace(/^#\/?/, "") === next) route(); else go(next);
     return;
   }
-  if (d.act === "ob-next") { ob.step += 1; route(); return; }
+  if (d.act === "ob-next") {
+    if (ob.step === 1) {
+      const raw = (($("#ob-handle") && $("#ob-handle").value) || ob.handle || "").trim().toLowerCase().replace(/^@/, "");
+      if (raw && !/^[a-z0-9_]{3,20}$/.test(raw)) { toast("Handle: 3–20 letters, numbers, or _"); return; }
+      ob.handle = raw;
+    }
+    ob.step += 1; route(); return;
+  }
   if (d.act === "ob-skip") { ob.step = 3; route(); return; }
   if (d.role) { ob.role = d.role; route(); return; }
   if (d.int) { ob.interests.has(d.int) ? ob.interests.delete(d.int) : ob.interests.add(d.int); route(); return; }
@@ -1606,6 +1702,7 @@ document.addEventListener("click", (e) => {
   }
 });
 document.addEventListener("input", (e) => {
+  if (e.target.id === "claim-h") e.target.value = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "");
   if (e.target.id === "dm-q") { dmQ = e.target.value; const v = e.target.value; route(); const i = $("#dm-q"); if (i) { i.focus(); i.setSelectionRange(v.length, v.length); } }
   if (e.target.id === "dm-people-q") {
     const q = e.target.value.toLowerCase();
@@ -1697,11 +1794,21 @@ document.addEventListener("keydown", (e) => {
   }
 });
 document.addEventListener("submit", (e) => {
+  if (e.target.id === "claim-form") { e.preventDefault(); claimHandle(); return; }
   if (!e.target.classList || !e.target.classList.contains("dm-compose")) return;
   e.preventDefault();
   const btn = e.target.querySelector("button[data-act=send-dm]");
   if (btn && !btn.disabled) btn.click();
 });
+function claimHandle() {
+  const raw = (($("#claim-h") && $("#claim-h").value) || "").trim().toLowerCase().replace(/^@/, "");
+  if (!/^[a-z0-9_]{3,20}$/.test(raw)) { toast("Use 3–20 letters, numbers, or _"); return; }
+  if (findCreator(raw) || raw === state.user.handle || raw === state.supporter.handle) { toast("That handle is taken"); return; }
+  ob.handle = raw;
+  ob.role = "creator";
+  ob.step = 1;
+  go("signup");
+}
 function openModal(inner) { const m = document.createElement("div"); m.className = "modal-bg"; m.id = "modal"; m.innerHTML = `<div class="modal">${inner}</div>`; m.addEventListener("click", (e) => { if (e.target === m) closeModal(); }); document.body.appendChild(m); }
 function closeModal() { const m = $("#modal"); if (m) m.remove(); }
 
